@@ -5,9 +5,12 @@ class GlobalSemaphore extends Semaphore {
   static final Map<String, GlobalSemaphore> _semaphores =
       <String, GlobalSemaphore>{};
 
-  factory GlobalSemaphore([String name]) {
-    var semaphore = _semaphores[name];
-    if (semaphore == null) {
+  factory GlobalSemaphore(String name) {
+    GlobalSemaphore semaphore;
+
+    if (_semaphores[name] != null) {
+      semaphore = _semaphores[name]!;
+    } else {
       semaphore = GlobalSemaphore._internal(name);
       _semaphores[name] = semaphore;
     }
@@ -21,7 +24,7 @@ class GlobalSemaphore extends Semaphore {
 /// Local semaphore is a unnamed semaphore with a specified count of max
 /// permits.
 class LocalSemaphore extends Semaphore {
-  LocalSemaphore(int maxCount) : super._internal(maxCount);
+  LocalSemaphore(int maxCount) : super._internal(maxCount, 'unnamed');
 }
 
 abstract class Semaphore {
@@ -33,11 +36,7 @@ abstract class Semaphore {
 
   final Queue<Completer> _waitQueue = Queue<Completer>();
 
-  Semaphore._internal(this.maxCount, [this.name]) {
-    if (maxCount == null) {
-      throw ArgumentError.notNull('maxCount');
-    }
-
+  Semaphore._internal(this.maxCount, this.name) {
     if (maxCount < 1) {
       throw RangeError.value(maxCount, 'maxCount');
     }
