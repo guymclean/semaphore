@@ -3,40 +3,41 @@ part of '../../semaphore.dart';
 /// Global semaphore is a named semaphore with max count of permits equals to 1.
 class GlobalSemaphore extends Semaphore {
   static final Map<String, GlobalSemaphore> _semaphores =
-      <String, GlobalSemaphore>{};
+  <String, GlobalSemaphore>{};
 
-  factory GlobalSemaphore(String name) {
-    GlobalSemaphore semaphore;
-
-    if (_semaphores[name] != null) {
-      semaphore = _semaphores[name]!;
-    } else {
+  factory GlobalSemaphore([String? name]) {
+    var semaphore = _semaphores[name];
+    if (semaphore == null) {
       semaphore = GlobalSemaphore._internal(name);
-      _semaphores[name] = semaphore;
+      _semaphores[name!] = semaphore;
     }
 
     return semaphore;
   }
 
-  GlobalSemaphore._internal(String name) : super._internal(1, name);
+  GlobalSemaphore._internal(String? name) : super._internal(1, name);
 }
 
 /// Local semaphore is a unnamed semaphore with a specified count of max
 /// permits.
 class LocalSemaphore extends Semaphore {
-  LocalSemaphore(int maxCount) : super._internal(maxCount, 'unnamed');
+  LocalSemaphore(int maxCount) : super._internal(maxCount);
 }
 
 abstract class Semaphore {
   final int maxCount;
 
-  final String name;
+  final String? name;
 
   int _currentCount = 0;
 
   final Queue<Completer> _waitQueue = Queue<Completer>();
 
-  Semaphore._internal(this.maxCount, this.name) {
+  Semaphore._internal(this.maxCount, [this.name]) {
+    if (maxCount == null) {
+      throw ArgumentError.notNull('maxCount');
+    }
+
     if (maxCount < 1) {
       throw RangeError.value(maxCount, 'maxCount');
     }
